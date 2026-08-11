@@ -7,7 +7,7 @@ configuration:
   analytics:
     provider: null
   locale: en-US
-  baseUrl: vikas-movva.github.io
+  baseUrl: vikas-movva.github.io/obsidian
   ignorePatterns:
     - private
     - templates
