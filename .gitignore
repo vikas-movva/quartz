@@ -12,3 +12,6 @@ quartz/.quartz-cache/
 # misc
 .DS_Store
 *.log
+
+# Quartz runtime cache (generated at build time; not our code)
+.quartz/
