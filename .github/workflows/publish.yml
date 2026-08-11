@@ -1,0 +1,93 @@
+name: Publish Obsidian notes to GitHub Pages
+
+on:
+  # Build + deploy whenever you push notes to the Obsidian vault repo.
+  push:
+    branches: [main]
+    paths-ignore:
+      - ".obsidian/**"
+      - "private/**"
+      - "netlify.toml"
+      - "README.md"
+  # Allow manual runs from the Actions tab.
+  workflow_dispatch:
+
+# Grant GITHUB_TOKEN the permissions needed to deploy to Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deploy; cancel in-progress runs on new push.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Where the two repos land inside the workspace.
+      VAULT_DIR: vault
+      QUARTZ_DIR: quartz
+    steps:
+      - name: Checkout Quartz (build code + plugins)
+        uses: actions/checkout@v4
+        with:
+          repository: vikas-movva/quartz
+          ref: v5
+          path: ${{ env.QUARTZ_DIR }}
+
+      - name: Checkout Obsidian vault (source notes)
+        uses: actions/checkout@v4
+        with:
+          repository: vikas-movva/Obsidian
+          ref: main
+          path: ${{ env.VAULT_DIR }}
+          # Bring history so created/modified dates are accurate.
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ env.QUARTZ_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ env.QUARTZ_DIR }}
+        run: npm ci
+
+      - name: Copy vault into Quartz content/ (exclude .obsidian/private/netlify)
+        run: |
+          set -euo pipefail
+          cd "${{ env.QUARTZ_DIR }}"
+          rm -rf content
+          mkdir -p content
+          rsync -a \
+            --exclude='.obsidian' \
+            --exclude='.git' \
+            --exclude='netlify.toml' \
+            --exclude='private' \
+            "${{ github.workspace }}/${{ env.VAULT_DIR }}/" content/
+          echo "Copied $(find content -name '*.md' | wc -l) markdown files"
+
+      - name: Build Quartz site
+        working-directory: ${{ env.QUARTZ_DIR }}
+        run: npx quartz build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.QUARTZ_DIR }}/public
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

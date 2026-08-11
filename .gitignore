@@ -1,14 +1,14 @@
+# Quartz build outputs (regenerated on every CI build)
+public/
+content/
+
+# dependencies
+node_modules/
+
+# local plugin cache (the registry cache, NOT .quartz/plugins which holds our code)
+quartz/.quartz-cache/
+.quartz/cache/
+
+# misc
 .DS_Store
-.gitignore
-node_modules
-public
-prof
-tsconfig.tsbuildinfo
-.obsidian
-.quartz-cache
-private/
-.replit
-replit.nix
-.quartz/
-quartz/cli/tui/dist/
-.turbo/
+*.log

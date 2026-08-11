@@ -1,0 +1,14 @@
+{
+  "name": "filter-private",
+  "version": "1.0.0",
+  "description": "Drop any note tagged `private` from the published site (belt-and-suspenders with ignorePatterns on the private/ folder).",
+  "type": "module",
+  "main": "index.ts",
+  "quartz": {
+    "name": "filter-private",
+    "displayName": "Filter Private",
+    "description": "Skips publishing notes whose frontmatter tags include `private`.",
+    "category": ["filter"],
+    "defaultOrder": 10
+  }
+}
