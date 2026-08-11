@@ -1,11 +1,11 @@
-# Quartz build outputs (regenerated on every CI build)
+# Quartz build output (regenerated on every CI build). DO NOT ignore `content/`:
+# Quartz globs content with gitignore:true, so an ignored content/ tree yields 0 files.
 public/
-content/
 
 # dependencies
 node_modules/
 
-# local plugin cache (the registry cache, NOT .quartz/plugins which holds our code)
+# local plugin cache (the registry cache, NOT ./filter-private which holds our code)
 quartz/.quartz-cache/
 .quartz/cache/
 
