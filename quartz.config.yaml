@@ -263,6 +263,9 @@ plugins:
   # --- Local page-type plugin: render Obsidian Kanban boards (`kanban-plugin` frontmatter) as HTML ---
   - source: "./p2kanban"
     enabled: true
+  # --- Local component: render Obsidian Map View (Leaflet) + Function Plot code blocks ---
+  - source: "./p2specialblocks"
+    enabled: true
 layout:
   groups:
     toolbar:

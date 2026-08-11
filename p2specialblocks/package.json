@@ -1,0 +1,25 @@
+{
+  "name": "p2specialblocks",
+  "version": "1.0.0",
+  "description": "Render Obsidian special code blocks: Map View (Leaflet) and Function Plot, plus Excalidraw (LZ-string -> SVG).",
+  "type": "module",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./components": "./index.ts"
+  },
+  "quartz": {
+    "name": "p2specialblocks",
+    "displayName": "Special Blocks",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "components": {
+      "SpecialBlocks": {
+        "displayName": "Special Blocks",
+        "defaultPosition": "content",
+        "defaultPriority": 0
+      }
+    }
+  }
+}
