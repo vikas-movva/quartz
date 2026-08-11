@@ -260,6 +260,9 @@ plugins:
   - source: "./filter-private"
     enabled: true
     order: 5
+  # --- Local page-type plugin: render Obsidian Kanban boards (`kanban-plugin` frontmatter) as HTML ---
+  - source: "./p2kanban"
+    enabled: true
 layout:
   groups:
     toolbar:

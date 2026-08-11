@@ -1,0 +1,20 @@
+{
+  "name": "p2kanban",
+  "version": "1.0.0",
+  "description": "Quartz v5 page-type plugin that renders Obsidian Kanban boards as HTML.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Vikas Movva",
+  "quartz": {
+    "name": "p2kanban",
+    "displayName": "Kanban Page",
+    "category": ["pageType"],
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "defaultOrder": 30,
+    "defaultEnabled": true,
+    "defaultOptions": {
+      "showSettings": false
+    }
+  }
+}
