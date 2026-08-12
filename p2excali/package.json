@@ -1,0 +1,22 @@
+{
+  "name": "p2excali",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Quartz plugin: rescue Obsidian Excalidraw drawings (stored in %% comments) and render them as SVG via @excalidraw/excalidraw.",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./components": "./index.ts"
+  },
+  "quartz": {
+    "category": ["transformer", "component"],
+    "defaultOptions": {},
+    "components": {
+      "Excali": {
+        "displayName": "Excali",
+        "defaultPosition": "content",
+        "defaultPriority": 0
+      }
+    }
+  }
+}

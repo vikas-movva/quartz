@@ -266,6 +266,13 @@ plugins:
   # --- Local component: render Obsidian Map View (Leaflet) + Function Plot code blocks ---
   - source: "./p2specialblocks"
     enabled: true
+  # --- Local transformer+component: rescue Obsidian Excalidraw drawings from %% comments and render as SVG ---
+  - source: "./p2excali"
+    enabled: true
+    order: 0
+    layout:
+      position: afterBody
+      priority: 12
 layout:
   groups:
     toolbar:
