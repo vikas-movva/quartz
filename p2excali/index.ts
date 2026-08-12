@@ -19,10 +19,14 @@ import type { QuartzComponent, QuartzComponentConstructor } from "../quartz/comp
 
 export interface ExcaliOptions {
   lzStringCdn?: string
+  reactCdn?: string
+  reactDomCdn?: string
   excalidrawCdn?: string
 }
 
 const DEFAULT_LZ_CDN = "https://unpkg.com/lz-string@1.5.0/libs/lz-string.min.js"
+const DEFAULT_REACT_CDN = "https://unpkg.com/react@18.3.1/umd/react.production.min.js"
+const DEFAULT_REACT_DOM_CDN = "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"
 const DEFAULT_EX_CDN =
   "https://unpkg.com/@excalidraw/excalidraw@0.17.6/dist/excalidraw.production.min.js"
 
@@ -60,29 +64,44 @@ export default function ExcaliTransformer(_opts?: Partial<ExcaliOptions>) {
 // ---------------------------------------------------------------------------
 export const Excali: QuartzComponentConstructor = (opts?: Partial<ExcaliOptions>) => {
   const lzStringCdn = opts?.lzStringCdn ?? DEFAULT_LZ_CDN
+  const reactCdn = opts?.reactCdn ?? DEFAULT_REACT_CDN
+  const reactDomCdn = opts?.reactDomCdn ?? DEFAULT_REACT_DOM_CDN
   const excalidrawCdn = opts?.excalidrawCdn ?? DEFAULT_EX_CDN
 
   const afterDOMLoaded = `
 (function(){
   function getLZCdn(){ return ${JSON.stringify(lzStringCdn)}; }
+  function getReactCdn(){ return ${JSON.stringify(reactCdn)}; }
+  function getReactDomCdn(){ return ${JSON.stringify(reactDomCdn)}; }
   function getExCdn(){ return ${JSON.stringify(excalidrawCdn)}; }
 
   function loadScript(src){
     return new Promise(function(res, rej){
       if (document.querySelector('script[src="' + src + '"]')) { res(); return; }
       var s = document.createElement('script');
-      s.src = src;
+      s.src = src; s.async = false;
       s.onload = function(){ res(); };
       s.onerror = function(){ rej(new Error('load failed: ' + src)); };
       document.head.appendChild(s);
     });
   }
 
+  // @excalidraw/excalidraw is a UMD bundle whose factory is
+  //   e.ExcalidrawLib = t(e.React, e.ReactDOM)
+  // so React + ReactDOM MUST be on window BEFORE the excalidraw script is
+  // evaluated (scripts are loaded with async=false to preserve eval order).
   function ensureLibs(cb){
     var pending = 0;
     var done = function(){ if (--pending === 0) cb(); };
     if (!window.LZString) { pending++; loadScript(getLZCdn()).then(done).catch(function(e){ console.error('[Excali]', e.message); }); }
-    if (!window.ExcalidrawLib) { pending++; loadScript(getExCdn()).then(done).catch(function(e){ console.error('[Excali]', e.message); }); }
+    if (!window.ExcalidrawLib) {
+      pending++;
+      loadScript(getReactCdn())
+        .then(function(){ return loadScript(getReactDomCdn()); })
+        .then(function(){ return loadScript(getExCdn()); })
+        .then(done)
+        .catch(function(e){ console.error('[Excali]', e.message); });
+    }
     if (pending === 0) cb();
   }
 
