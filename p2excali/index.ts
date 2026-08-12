@@ -86,35 +86,57 @@ export const Excali: QuartzComponentConstructor = (opts?: Partial<ExcaliOptions>
     });
   }
 
-  // @excalidraw/excalidraw is a UMD bundle whose factory is
+  // @excalidraw/excalidraw is a UMD bundle; its factory is
   //   e.ExcalidrawLib = t(e.React, e.ReactDOM)
-  // so React + ReactDOM MUST be on window BEFORE the excalidraw script is
-  // evaluated (scripts are loaded with async=false to preserve eval order).
+  // All three UMDs (React, ReactDOM, Excalidraw) only set their window.* global
+  // in the LAST UMD branch, which is SKIPPED if exports/module/define
+  // already exist on window (Quartz's bundled page can leave them around).
+  // That leaves window.ExcalidrawLib undefined -> "Cannot read exportToSvg".
+  // So we load the whole chain with those globals hidden, then restore them.
+  function loadWithGlobalsHidden(src){
+    var saved = {};
+    ["exports","module","define"].forEach(function(k){ saved[k] = window[k]; try { delete window[k]; } catch(e){ window[k] = undefined; } });
+    return loadScript(src).then(function(){
+      ["exports","module","define"].forEach(function(k){
+        if (saved[k] === undefined) { try { delete window[k]; } catch(e){} } else { window[k] = saved[k]; }
+      });
+    });
+  }
+
   function ensureLibs(cb){
     var pending = 0;
     var done = function(){ if (--pending === 0) cb(); };
     if (!window.LZString) { pending++; loadScript(getLZCdn()).then(done).catch(function(e){ console.error('[Excali]', e.message); }); }
-    if (!window.ExcalidrawLib) {
+    if (!getExcalidrawLib()) {
       pending++;
-      loadScript(getReactCdn())
-        .then(function(){ return loadScript(getReactDomCdn()); })
-        .then(function(){ return loadScript(getExCdn()); })
+      loadWithGlobalsHidden(getReactCdn())
+        .then(function(){ return loadWithGlobalsHidden(getReactDomCdn()); })
+        .then(function(){ return loadWithGlobalsHidden(getExCdn()); })
         .then(done)
         .catch(function(e){ console.error('[Excali]', e.message); });
     }
     if (pending === 0) cb();
   }
 
+  function getExcalidrawLib(){
+    return window.ExcalidrawLib || (window.exports && window.exports.ExcalidrawLib);
+  }
+
   function render(block){
     var lz = block.getAttribute('data-excalidraw');
     if (!lz) return;
     ensureLibs(function(){
+      var ExcalidrawLib = getExcalidrawLib();
+      if (!ExcalidrawLib || typeof ExcalidrawLib.exportToSvg !== 'function') {
+        block.textContent = 'Excalidraw: renderer failed to load';
+        return;
+      }
       var json;
       try { json = window.LZString.decompressFromBase64(lz); } catch (e) { json = null; }
       if (!json) { block.textContent = 'Excalidraw: could not decode scene'; return; }
       var scene;
       try { scene = JSON.parse(json); } catch (e) { block.textContent = 'Excalidraw: invalid scene JSON'; return; }
-      window.ExcalidrawLib.exportToSvg({
+      ExcalidrawLib.exportToSvg({
         elements: scene.elements || [],
         appState: Object.assign({}, scene.appState || {}, { exportBackground: true }),
         files: scene.files || {}
